@@ -48,28 +48,35 @@ public class Main {
         Dataset<Row> rent_lookup_neighborhood = readCollection(jsc, "rent_lookup_neighborhood");
         Dataset<Row> income_lookup_district = readCollection(jsc, "income_lookup_district");
         Dataset<Row> income_lookup_neighborhood = readCollection(jsc, "income_lookup_neighborhood");
-        Dataset<Row> income_opendata_neighborhood = readCollection(jsc, "income_opendata_neighborhood");
+        Dataset<Row> income_opendata_neighborhood = readCollection(jsc, "income_opendata_neighborhood")
+            .withColumnRenamed("neigh_name ", "neigh_name"); // Fix space in column name
 
         idealista.printSchema();
 
         rent_lookup_neighborhood.printSchema();
-        Dataset<Row> nei = idealista
-                .join(rent_lookup_neighborhood.withColumnRenamed("_id", "nei_id"), idealista.col("neighborhood")
-                        .equalTo(rent_lookup_neighborhood.col("ne")), "left_outer");
 
-        nei.printSchema();
+        Dataset<Row> joined = idealista
+                .join(rent_lookup_neighborhood
+                        .withColumnRenamed("_id", "n_id")
+                        .select("n_id", "ne"),
+                        idealista.col("neighborhood")
+                                .equalTo(rent_lookup_neighborhood.col("ne")),
+                        "left_outer")
+                .withColumnRenamed("neighborhood", "neighborhood_idealista")
+                .join(rent_lookup_district.select("_id", "di", "ne_id"),
+                        idealista.col("district").equalTo(rent_lookup_district.col("di")),
+                        "left_outer")
+                .withColumnRenamed("_id", "d_id")
+                .withColumnRenamed("district", "district_idealista");
 
-        Dataset<Row> joined = nei
-                .join(rent_lookup_district, idealista.col("district").equalTo(rent_lookup_district.col("di")),
-                        "left_outer");
-
+        System.out.println("joined schema");
         joined.printSchema();
 
         // Check distribution of districts in idealista ordered
         idealista.groupBy("district").count().orderBy(functions.desc("count")).show();
 
         // Check that all the neighborhoods are in the correct district
-        Dataset<Row> idealista_correct = filterBelongs(joined, "nei_id", "ne_id");
+        Dataset<Row> idealista_correct = filterBelongs(joined, "n_id", "ne_id").drop("ne_id");
 
         System.out.println("OK: " + idealista_correct.count() + " / " + joined.count());
 
@@ -82,22 +89,27 @@ public class Main {
         System.out.println("Income Lookup district schema: ");
         income_lookup_district.printSchema();
 
-        // For some reason neigh_name has an space at the end in the table...
         Dataset<Row> income_joined = income_opendata_neighborhood
                 .withColumnRenamed("district_name", "district")
-                .join(income_lookup_district.withColumnRenamed("_id", "d_id"), "district")
+                .join(income_lookup_district.withColumnRenamed("_id", "d_id").select("d_id", "district",
+                        "neighborhood_id"), "district")
                 .join(
-                        income_lookup_neighborhood.withColumnRenamed("_id", "n_id"),
-                        functions.col("neigh_name ").equalTo(functions.col("neighborhood")),
+                        income_lookup_neighborhood.withColumnRenamed("_id", "n_id")
+                                .select("n_id", "neighborhood"),
+                        functions.col("neigh_name").equalTo(functions.col("neighborhood")),
                         "left_outer");
 
-        Dataset<Row> income_correct = filterBelongs(income_joined, "n_id", "neighborhood_id");
+        Dataset<Row> income_correct = filterBelongs(income_joined, "n_id", "neighborhood_id").drop("neighborhood_id");
 
         System.out.println("OK: " + income_correct.count() + " / " + income_joined.count());
 
+        income_correct.printSchema();
+
+        idealista_correct.printSchema();
+
         Dataset<Row> final_join = idealista_correct
-                .drop("district_name")
-                .join(income_joined, idealista_correct.col("nei_id").equalTo(income_joined.col("n_id")), "left_outer");
+                .drop("district_name", "d_id")
+                .join(income_joined, "n_id");
 
         final_join.printSchema();
 
@@ -106,7 +118,7 @@ public class Main {
         // TODO: solve column name problem:
         // Duplicate column(s): "neighborhood", "_id", "district" found, cannot save to
         // file.
-        // final_join.write().parquet("./final_join");
+        final_join.write().parquet("./final_join");
 
         jsc.close();
     }
