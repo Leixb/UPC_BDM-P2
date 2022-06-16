@@ -17,7 +17,7 @@
     jdtls = pkgs.callPackage ./.jdtls.nix { };
   in
   rec {
-    devShell = with pkgs; mkShellNoCC {
+    devShells.default = with pkgs; mkShellNoCC {
       name = "java";
       buildInputs = [
         jdk jdtls # JDTLS requires java > 1.11
@@ -31,10 +31,21 @@
       KAFKA_TOPIC = "bdm_p2";
     };
 
+    devShells.wsl = with pkgs; mkShellNoCC {
+      name = "java";
+      buildInputs = [
+        apacheKafka
+        mongodb
+        mongodb-tools
+      ];
+
+      KAFKA_SERVER = "venomoth.fib.upc.edu:9092";
+      KAFKA_TOPIC = "bdm_p2";
+    };
+
     packages = {
       inherit jar;
       default = self.packages.${system}.jar;
     };
-
   });
 }
