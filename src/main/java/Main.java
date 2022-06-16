@@ -51,7 +51,19 @@ public class Main {
         Dataset<Row> income_lookup_district = readCollection(jsc, "income_lookup_district");
         Dataset<Row> income_lookup_neighborhood = readCollection(jsc, "income_lookup_neighborhood");
         Dataset<Row> income_opendata_neighborhood = readCollection(jsc, "income_opendata_neighborhood")
-            .withColumnRenamed("neigh_name ", "neigh_name"); // Fix space in column name
+                .withColumnRenamed("neigh_name ", "neigh_name"); // Fix space in column name
+
+        Dataset<Row> incidents = readCollection(jsc, "incidents");
+
+        Dataset<Row> incidents_per_barri = incidents
+                .filter(incidents.col("Codi Incident").equalTo("610"))
+                .groupBy("Nom Barri")
+                .count()
+                .withColumnRenamed("Nom Barri", "neighborhood")
+                .withColumnRenamed("count", "incidents")
+                .join(income_lookup_neighborhood.select("_id", "neighborhood"), "neighborhood")
+                .drop("neighborhood")
+                .withColumnRenamed("_id", "n_id");
 
         // Join idealista with its lookup tables
         Dataset<Row> joined = idealista
@@ -90,12 +102,27 @@ public class Main {
         // Join the datasets
         Dataset<Row> final_join = idealista_correct
                 .drop("district_name", "d_id")
-                .join(income_joined, "n_id");
+                .join(income_joined, "n_id")
+                .join(incidents_per_barri, "n_id");
+
+        // Count number of duplicates
+        Dataset<Row> duplicates = final_join
+                .groupBy("url")
+                .count()
+                .filter(functions.col("count").gt(1));
+
+        // remove duplicates
+        System.out.println("Number of duplicates: " + duplicates.count());
+        duplicates.agg(functions.sum("count")).show();
 
         System.out.println(final_join.count() + " / " + joined.count());
 
+        final_join = final_join.dropDuplicates("url");
+        System.out.println("After duplicate removal: " + final_join.count());
+
         // Save dataset into formatted zone
-        final_join.write().parquet("./formatted_zone");
+        String output_dir = "./formatted_zone";
+        final_join.write().parquet(output_dir);
 
         jsc.close();
     }
