@@ -2,6 +2,7 @@ data
 .direnv
 result
 idealista
+formatted_zone
 
 ### Java ###
 # Compiled class file

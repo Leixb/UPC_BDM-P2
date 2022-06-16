@@ -1,0 +1,8 @@
+stages:
+  ingest:
+    cmd: nix run
+    deps:
+    - data
+    - idealista
+    outs:
+    - formatted_zone

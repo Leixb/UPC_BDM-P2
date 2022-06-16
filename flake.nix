@@ -6,41 +6,42 @@
       url = "github:numtide/flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
   };
-  outputs = { self, nixpkgs, flake-utils, ...}:
+
+  outputs = { self, nixpkgs, flake-utils }:
 
   flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
+
     jar = pkgs.callPackage ./.jar.nix { };
     jdtls = pkgs.callPackage ./.jdtls.nix { };
-  in
-  rec {
-    devShells.default = with pkgs; mkShellNoCC {
-      name = "java";
-      buildInputs = [
-        jdk jdtls # JDTLS requires java > 1.11
 
-        apacheKafka
-        mongodb
-        mongodb-tools
-      ];
+    KAFKA_SERVER = "venomoth.fib.upc.edu:9092";
+    KAFKA_TOPIC = "bdm_p2";
+    DVC_NO_ANALYTICS = 1;
 
-      KAFKA_SERVER = "venomoth.fib.upc.edu:9092";
-      KAFKA_TOPIC = "bdm_p2";
-    };
+    commonPackages = with pkgs; [
+      apacheKafka
+      mongodb
+      mongodb-tools
+      dvc-with-remotes
+      pkgs.python3.pkgs.pydrive2
+    ];
 
-    devShells.wsl = with pkgs; mkShellNoCC {
-      name = "java";
-      buildInputs = [
-        apacheKafka
-        mongodb
-        mongodb-tools
-      ];
+  in rec {
+    devShells = {
+      default = with pkgs; mkShellNoCC {
+        name = "java-kafka-mongo";
+        buildInputs = commonPackages ++ [ jdk jdtls ];
+        inherit KAFKA_SERVER KAFKA_TOPIC DVC_NO_ANALYTICS;
+      };
 
-      KAFKA_SERVER = "venomoth.fib.upc.edu:9092";
-      KAFKA_TOPIC = "bdm_p2";
+      wsl = with pkgs; mkShellNoCC {
+        name = "mongo-kafka";
+        buildInputs = commonPackages;
+        inherit KAFKA_SERVER KAFKA_TOPIC DVC_NO_ANALYTICS;
+      };
     };
 
     packages = {
