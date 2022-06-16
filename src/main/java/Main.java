@@ -1,28 +1,38 @@
-import org.apache.spark.SparkConf;
+import com.mongodb.spark.MongoSpark;
+import com.mongodb.spark.rdd.api.java.JavaMongoRDD;
+
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
+import org.bson.Document;
 
 public class Main {
-	
-	public static void main(String[] args) throws Exception {
-		SparkConf conf = new SparkConf().setAppName("SparkTraining").setMaster("local[*]");
-        JavaSparkContext ctx = new JavaSparkContext(conf);
-		
-		if (args.length < 1) {
-			throw new Exception("Wrong number of parameters, usage: (exercise1,exercise2,exercise3)");
-		}
 
-		if (args[0].equals("exercise1")) {
-            System.out.println(Exercise_1.basicAnalysis(ctx));
-        }
-		else if (args[0].equals("exercise2")) {
-		    System.out.println(Exercise_2.groupByAndAgg(ctx));
-        }
-        else if (args[0].equals("exercise3")) {
-            System.out.println(Exercise_3_kNN.kNN_prediction(ctx));
-        }
-		else {
-			throw new Exception("Wrong number of exercise");
-		}
+	public static void main(String[] args) {
+		SparkSession spark = SparkSession
+            .builder()
+            .master("local[*]")
+            .appName("P2")
+            .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.rent_lookup_district")
+            .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.rent_lookup_district")
+            .getOrCreate();
+		// spark.read().parquet("./idealista/*")
+				// .withColumn("input_file", functions.input_file_name())
+				// .toJavaRDD()
+				// .foreach(t -> System.out.println(t));
+        // Read from mongo
+
+        // Create a JavaSparkContext using the SparkSession's SparkContext object
+        JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
+        /*Start Example: Read data from MongoDB************************/
+        JavaMongoRDD<Document> rdd = MongoSpark.load(jsc);
+        /*End Example**************************************************/
+        // Analyze data from MongoDB
+        System.out.println(rdd.count());
+        // System.out.println(rdd.first().toJson());
+        jsc.close();
+
+        // spark.read().format("mongodb").option("uri", "mongodb://localhost:27017").load("local.rent_lookup_district").show();
+
 	}
 }
-
