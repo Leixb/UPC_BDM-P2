@@ -22,14 +22,19 @@
       buildInputs = [
         jdk jdtls # JDTLS requires java > 1.11
 
-        packages.jar
+        apacheKafka
+        mongodb
+        mongodb-tools
       ];
+
+      KAFKA_SERVER = "venomoth.fib.upc.edu:9092";
+      KAFKA_TOPIC = "bdm_p2";
     };
 
     packages = {
       inherit jar;
+      default = self.packages.${system}.jar;
     };
 
-    defaultPackage = packages.jar;
   });
 }
