@@ -1,34 +1,45 @@
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.mongodb.spark.MongoSpark;
 import com.mongodb.spark.config.ReadConfig;
 
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.Dataset;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
+
+import scala.Tuple2;
+import scala.Tuple3;
 
 public class Formatted {
 
-    private static Dataset<Row> readCollection(JavaSparkContext jsc, String collection) {
+    private static JavaRDD<Row> readCollection(JavaSparkContext jsc, String collection) {
         Map<String, String> readOverrides = new HashMap<String, String>();
         readOverrides.put("collection", collection);
         ReadConfig readConfig = ReadConfig.create(jsc).withOptions(readOverrides);
 
-        return MongoSpark.load(jsc, readConfig).toDF();
+        return MongoSpark.load(jsc, readConfig).toDF().toJavaRDD();
     }
 
-    private static Dataset<Row> filterBelongs(Dataset<Row> data, final String column_id, final String column_list) {
-        final int neighborhood_column_index = data.schema().fieldIndex(column_id);
-        final int neighborhood_array_index = data.schema().fieldIndex(column_list);
-        return data.filter((x) -> {
-            List<String> ls = x.getList(neighborhood_array_index);
-            String id = x.getString(neighborhood_column_index);
-            return ls != null && id != null && ls.contains(id);
-        });
+    private static JavaPairRDD<String, Row> readCollectionWithKey(JavaSparkContext jsc, final String collection,
+            final String key) {
+        return readCollection(jsc, collection).mapToPair(setKey(key));
+    }
+
+    private static PairFunction<Row, String, Row> setKey(final String key) {
+        return row -> new Tuple2<>(row.getString(row.fieldIndex(key)), row);
+    }
+
+    private static PairFunction<Tuple2<String, Row>, String, Row> newKey(final String key) {
+        return tuple -> {
+            Row row = tuple._2();
+            return new Tuple2<String, Row>(row.getString(row.fieldIndex(key)), row);
+        };
     }
 
     public static void run(String[] args) {
@@ -42,87 +53,107 @@ public class Formatted {
         spark.sparkContext().setLogLevel("WARN");
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        // Parquet data sources
-        Dataset<Row> idealista = spark.read().parquet("./idealista/*");
+        //
+        // Helper functions
+        //
+        // --------------------------------------------------------------------------------------------------------------------
 
-        // MongoDB data sources
-        Dataset<Row> rent_lookup_district = readCollection(jsc, "rent_lookup_district");
-        Dataset<Row> rent_lookup_neighborhood = readCollection(jsc, "rent_lookup_neighborhood");
-        Dataset<Row> income_lookup_district = readCollection(jsc, "income_lookup_district");
-        Dataset<Row> income_lookup_neighborhood = readCollection(jsc, "income_lookup_neighborhood");
-        Dataset<Row> income_opendata_neighborhood = readCollection(jsc, "income_opendata_neighborhood")
-                .withColumnRenamed("neigh_name ", "neigh_name"); // Fix space in column name
+        // Take only the _id column from the row
+        PairFunction<Tuple2<String, Row>, String, String> extract_id = tuple -> {
+            Row row = tuple._2();
+            return new Tuple2<>(tuple._1(), row.getString(row.fieldIndex("_id")));
+        };
 
-        Dataset<Row> incidents = readCollection(jsc, "incidents");
+        // Use the newly joined lookup value as key
+        // PairFunction<Tuple2<String, Tuple2<Row, String>>, String, Row> reset_key =
+        // tuple -> new Tuple2<>(tuple._2()._2(), tuple._2()._1());
+        PairFunction<Tuple2<String, Tuple2<Row, String>>, String, Row> reset_key = tuple -> new Tuple2<>(
+                tuple._2()._2(), tuple._2()._1());
 
-        Dataset<Row> incidents_per_barri = incidents
-                .filter(incidents.col("Codi Incident").equalTo("610"))
-                .groupBy("Nom Barri")
-                .count()
-                .withColumnRenamed("Nom Barri", "neighborhood")
-                .withColumnRenamed("count", "incidents")
-                .join(income_lookup_neighborhood.select("_id", "neighborhood"), "neighborhood")
-                .drop("neighborhood")
-                .withColumnRenamed("_id", "n_id");
+        // --------------------------------------------------------------------------------------------------------------------
 
-        // Join idealista with its lookup tables
-        Dataset<Row> joined = idealista
-                .join(rent_lookup_neighborhood
-                        .withColumnRenamed("_id", "n_id")
-                        .select("n_id", "ne"),
-                        idealista.col("neighborhood")
-                                .equalTo(rent_lookup_neighborhood.col("ne")),
-                        "left_outer")
-                .withColumnRenamed("neighborhood", "neighborhood_idealista")
-                .join(rent_lookup_district.select("_id", "di", "ne_id"),
-                        idealista.col("district").equalTo(rent_lookup_district.col("di")),
-                        "left_outer")
-                .withColumnRenamed("_id", "d_id")
-                .withColumnRenamed("district", "district_idealista");
+        // idealista processing
+        //
+        // We take idealista and:
+        // - remove duplicates (same propertyCode) (favouring the most recent one)
+        // - join it with the neighborhood lookup table
+        // - set the neighborhood_id as key
+        JavaRDD<Row> idealista = spark.read().parquet("./idealista/*").toJavaRDD();
+        JavaPairRDD<String, Row> idealista_unique = idealista
+                .mapToPair(setKey("propertyCode"))
+                .reduceByKey((row1, row2) -> row2);
 
-        // Check that all the neighborhoods are in the correct district
-        Dataset<Row> idealista_correct = filterBelongs(joined, "n_id", "ne_id").drop("ne_id");
-        System.out.println("OK: " + idealista_correct.count() + " / " + joined.count());
+        JavaPairRDD<String, String> rent_lookup_neighborhood = readCollectionWithKey(jsc, "rent_lookup_neighborhood",
+                "ne")
+                .mapToPair(extract_id);
 
-        // Join income_opendata_neighborhood with its lookup tables
-        Dataset<Row> income_joined = income_opendata_neighborhood
-                .withColumnRenamed("district_name", "district")
-                .join(income_lookup_district.withColumnRenamed("_id", "d_id").select("d_id", "district",
-                        "neighborhood_id"), "district")
-                .join(
-                        income_lookup_neighborhood.withColumnRenamed("_id", "n_id")
-                                .select("n_id", "neighborhood"),
-                        functions.col("neigh_name").equalTo(functions.col("neighborhood")),
-                        "left_outer");
+        JavaPairRDD<String, Row> idealista_joined = idealista_unique
+                .mapToPair(newKey("neighborhood"))
+                .join(rent_lookup_neighborhood)
+                .mapToPair(reset_key);
 
-        // Check that all the neighborhoods are in the correct district
-        Dataset<Row> income_correct = filterBelongs(income_joined, "n_id", "neighborhood_id").drop("neighborhood_id");
-        System.out.println("OK: " + income_correct.count() + " / " + income_joined.count());
+        System.out.println("idealista: original: " + idealista.count());
+        System.out.println("idealista: after duplicate removal: " + idealista_unique.count());
+        System.out.println("idealista: after neighborhood join: " + idealista_joined.count());
 
-        // Join the datasets
-        Dataset<Row> final_join = idealista_correct
-                .drop("district_name", "d_id")
-                .join(income_joined, "n_id")
-                .join(incidents_per_barri, "n_id");
+        // income opendataBCN processing
+        JavaPairRDD<String, Row> income_opendata_neighborhood = readCollectionWithKey(jsc,
+                "income_opendata_neighborhood", "neigh_name ");
+        JavaPairRDD<String, String> income_lookup_neighborhood = readCollectionWithKey(jsc,
+                "income_lookup_neighborhood", "neighborhood")
+                .mapToPair(extract_id);
 
-        // Count number of duplicates
-        Dataset<Row> duplicates = final_join
-                .groupBy("url")
-                .count()
-                .filter(functions.col("count").gt(1));
+        JavaPairRDD<String, Row> income_opendata_neighborhood_joined = income_opendata_neighborhood
+                .join(income_lookup_neighborhood)
+                .mapToPair(reset_key);
 
-        // remove duplicates
-        System.out.println("Number of duplicates: " + duplicates.count());
-        duplicates.agg(functions.sum("count")).show();
+        System.out.println("income_opendata_neighborhood: " + income_opendata_neighborhood.count());
+        System.out.println("income_opendata_neighborhood: after neighborhood join: "
+                + income_opendata_neighborhood_joined.count());
 
-        System.out.println(final_join.count() + " / " + joined.count());
+        JavaPairRDD<String, Row> incidents = readCollectionWithKey(jsc, "incidents", "Nom barri").filter(
+                tuple -> {
+                    Row row = tuple._2();
+                    Integer fieldIndex = row.fieldIndex("Codi Incident");
+                    return fieldIndex != -1 && !row.isNullAt(fieldIndex) && row.getString(fieldIndex).equals("610");
+                });
 
-        final_join = final_join.dropDuplicates("url");
-        System.out.println("After duplicate removal: " + final_join.count());
+        JavaPairRDD<String, Row> incidents_joined = incidents
+                .reduceByKey((row1, row2) -> {
+                    int sum = 0;
+                    if (row1.schema() != null) {
+                        int idx1 = row1.fieldIndex("Numero_incidents_GUB");
+                        if (!row1.isNullAt(idx1))
+                            sum += row1.getInt(idx1);
+                    }
+                    if (row2.schema() != null) {
+                        int idx2 = row2.fieldIndex("Numero_incidents_GUB");
+                        if (!row2.isNullAt(idx2))
+                            sum += row2.getInt(idx2);
+                    }
+                    return RowFactory.create(sum);
+                })
+                .join(income_lookup_neighborhood)
+                .mapToPair(reset_key);
 
-        // Save dataset into formatted zone
-        String output_dir = "./formatted_zone";
-        final_join.write().parquet(output_dir);
+        System.out.println("incidents: " + incidents.count());
+        System.out.println("incidents: after neighborhood join: " + incidents_joined.count());
+
+        JavaPairRDD<String, Tuple2<Row, Row>> join = income_opendata_neighborhood_joined.join(incidents_joined);
+
+        System.out.println("join: " + join.count());
+
+        JavaPairRDD<String, Tuple3<Row, Row, Row>> last = idealista_joined.join(join).mapValues(
+                tuple -> {
+                    Row row1 = tuple._1();
+                    Row row2 = tuple._2()._1();
+                    Row row3 = tuple._2()._2();
+                    return new Tuple3<>(row1, row2, row3);
+                });
+
+        System.out.println("last: " + last.count());
+
+        last.saveAsTextFile("formatted_zone");
 
         jsc.close();
     }
