@@ -22,6 +22,7 @@ public class Main {
         Action[] actions = {
                 new Action("formatted", Formatted::run),
                 new Action("exploitation", Exploitation::run),
+                new Action("model", Model::run),
                 new Action("streaming", Streaming::run),
         };
 
