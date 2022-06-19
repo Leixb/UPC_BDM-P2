@@ -1,5 +1,8 @@
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -77,6 +80,12 @@ public class Model {
         double recall = metrics.weightedRecall();
         System.out.println("Recall = " + recall);
         System.out.println("Accuracy = " + accuracy);
+
+        try {
+            FileUtils.deleteDirectory(new File("./model"));
+        } catch (IOException e) {
+            // no model folder
+        }
 
         // Save and load model
         model.save(sc, "./model");
