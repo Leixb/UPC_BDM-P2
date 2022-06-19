@@ -47,24 +47,11 @@ public class Formatted {
         spark.sparkContext().setLogLevel("WARN");
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        //
-        // Helper functions
-        //
-        // --------------------------------------------------------------------------------------------------------------------
-
-        // Take only the _id column from the row
+        // Helper function to take _id column from the row
         PairFunction<Tuple2<String, Row>, String, String> extract_id = tuple -> {
             Row row = tuple._2();
             return new Tuple2<>(tuple._1(), row.getString(row.fieldIndex("_id")));
         };
-
-        // Use the newly joined lookup value as key
-        // PairFunction<Tuple2<String, Tuple2<Row, String>>, String, Row> reset_key =
-        // tuple -> new Tuple2<>(tuple._2()._2(), tuple._2()._1());
-        PairFunction<Tuple2<String, Tuple2<Row, String>>, String, Row> reset_key = tuple -> new Tuple2<>(
-                tuple._2()._2(), tuple._2()._1());
-
-        // --------------------------------------------------------------------------------------------------------------------
 
         // idealista processing
         //
