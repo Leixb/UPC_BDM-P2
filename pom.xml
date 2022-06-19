@@ -4,58 +4,58 @@
   <artifactId>spark</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <dependencies>
 
-      <dependency>
-          <groupId>org.apache.spark</groupId>
-          <artifactId>spark-core_2.12</artifactId>
-          <version>3.0.2</version>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-core_2.12</artifactId>
+      <version>3.0.2</version>
+    </dependency>
 
-      <dependency>
-          <groupId>org.apache.spark</groupId>
-          <artifactId>spark-sql_2.12</artifactId>
-          <version>3.0.2</version>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-sql_2.12</artifactId>
+      <version>3.0.2</version>
+    </dependency>
 
-      <dependency>
-          <groupId>org.mongodb.spark</groupId>
-          <artifactId>mongo-spark-connector_2.12</artifactId>
-          <version>3.0.2</version>
-      </dependency>
+    <dependency>
+      <groupId>org.mongodb.spark</groupId>
+      <artifactId>mongo-spark-connector_2.12</artifactId>
+      <version>3.0.2</version>
+    </dependency>
 
-      <dependency>
-          <groupId>org.apache.spark</groupId>
-          <artifactId>spark-streaming_2.12</artifactId>
-          <version>3.0.2</version>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming_2.12</artifactId>
+      <version>3.0.2</version>
+    </dependency>
 
-      <dependency>
-          <groupId>org.apache.spark</groupId>
-          <artifactId>spark-streaming-kafka-0-10_2.12</artifactId>
-          <version>3.0.2</version>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming-kafka-0-10_2.12</artifactId>
+      <version>3.0.2</version>
+    </dependency>
 
-      <dependency>
-        <groupId>org.apache.spark</groupId>
-        <artifactId>spark-mllib_2.12</artifactId>
-        <version>3.0.2</version>
-        <scope>provided</scope>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-mllib_2.12</artifactId>
+      <version>3.0.2</version>
+      <scope>provided</scope>
+    </dependency>
 
-    </dependencies>
+  </dependencies>
 </project>
 
