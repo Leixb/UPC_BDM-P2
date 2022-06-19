@@ -3,6 +3,7 @@ data
 result
 idealista
 *_zone/
+model/
 
 ### Java ###
 # Compiled class file
