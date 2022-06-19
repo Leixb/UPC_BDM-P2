@@ -1,16 +1,25 @@
 import java.util.Map;
+import java.util.Properties;
 
 import com.google.common.collect.Iterators;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
+import org.apache.spark.mllib.classification.LogisticRegressionModel;
+import org.apache.spark.mllib.linalg.Vectors;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -21,6 +30,8 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
 import scala.Tuple2;
+import scala.Tuple3;
+import scala.Tuple4;
 
 public class Streaming {
 
@@ -38,11 +49,20 @@ public class Streaming {
     }
 
     public static void run(String[] args) {
+
         SparkConf conf = new SparkConf().setAppName("P2").setMaster("local[*]");
+
         JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(1000));
+
+        SparkSession spark = SparkSession.builder().appName("P2").getOrCreate();
+        SparkContext sc = spark.sparkContext();
+
         Logger.getRootLogger().setLevel(Level.ERROR);
 
-        ssc.checkpoint("./checkpoint");
+
+        LogisticRegressionModel model = LogisticRegressionModel.load(sc, "./model");
+
+        // ssc.checkpoint("./checkpoint");
 
         JavaInputDStream<ConsumerRecord<String, String>> kafkaStream = KafkaUtils.createDirectStream(
                 ssc,
@@ -52,35 +72,46 @@ public class Streaming {
         // The key is not defined in our stream, ignore it
         JavaDStream<String> stream = kafkaStream.map(t -> t.value());
         // stream.print();
-        JavaDStream<String> records = stream.flatMap(record -> Iterators.forArray(record.split(",")));
-        JavaDStream<String> neighborhoods = records.filter(neighborhood -> neighborhood.startsWith("Q"));
-        neighborhoods.print();
-
-        // Count of each neighborhood
-        JavaPairDStream<String, Integer> neighborhoodsWith1 = neighborhoods
-                .mapToPair(neighborhood -> new Tuple2<>(neighborhood, 1));
-
-        JavaPairDStream<String, Integer> counts = neighborhoodsWith1.reduceByKeyAndWindow(
-                (i1, i2) -> i1 + i2,
-                (i1, i2) -> i1 - i2,
-                new Duration(60 * 5 * 1000),
-                new Duration(1 * 1000));
-
-        JavaPairDStream<Integer, String> swappedCounts = counts.mapToPair(count -> count.swap());
-        JavaPairDStream<Integer, String> sortedCounts = swappedCounts.transformToPair(count -> count.sortByKey(false));
-
-        sortedCounts.foreachRDD(rdd -> {
-            String out = "\nCountedNeighborhood:\n";
-            for (Tuple2<Integer, String> t : rdd.take(20)) {
-                out = out + t.toString() + "\n";
-            }
-            System.out.println(out);
+        JavaDStream<Tuple3<String, String, Integer>> records = stream.map(record ->{
+            String[] l = record.split(",");
+            return new Tuple3<String, String, Integer>(l[0], l[1], Integer.parseInt(l[2]));
         });
+
+        // KafkaProducer<String, String> producer = new KafkaProducer<String, String>(createKafkaParamsMap());
+
+        createKafkaParamsMap();
+
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("acks", "all");
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+
+        JavaDStream<Tuple4<String, String, Integer, Integer> > predicted = records.map(record -> {
+            Integer prediction = (int) model.predict(Vectors.dense(new double[] {
+                    (double) Model.NeighbourhoodEncode(record._2()),
+                    (double) record._3()
+            }));
+            return new Tuple4<String, String, Integer, Integer>(record._1(), record._2(), record._3(), prediction);
+        });
+
+        predicted.foreachRDD(rdd -> {
+            rdd.foreach(record -> {
+                System.out.println(record._1() + "," + record._2() + "," + record._3() + "," + record._4());
+
+                Producer<String, String> producer = new KafkaProducer<>(props);
+                producer.send(new ProducerRecord<String, String>("bdm_p2", record._1() + "," + record._2() + "," + record._3() + "," + record._4()));
+                producer.close();
+            });
+        });
+
         ssc.start();
 
         try {
             ssc.awaitTermination();
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            System.out.println("INTERRUPTED");
             System.exit(0);
         }
         ssc.stop();
