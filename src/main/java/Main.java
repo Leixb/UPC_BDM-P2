@@ -28,7 +28,7 @@ public class Main {
 
         for (Action action : actions) {
             if (action.name.startsWith(args[0])) {
-                System.out.println("Running action: " + action.name);
+                System.err.println("Running action: " + action.name);
                 action.run.accept(args);
                 return;
             }
