@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.mongodb.spark.MongoSpark;
 import com.mongodb.spark.config.ReadConfig;
@@ -62,7 +63,8 @@ public class Formatted {
         JavaRDD<Row> idealista = spark.read().parquet("./idealista/*").toJavaRDD();
         JavaPairRDD<String, RentInformation> idealista_unique = idealista
                 .mapToPair(setKey("propertyCode"))
-                .reduceByKey((row1, row2) -> row2).mapValues(RentInformation::new);
+                .reduceByKey((row1, row2) -> row2)
+                .mapValues(RentInformation::new);
 
         JavaPairRDD<String, String> rent_lookup_neighborhood = readCollectionWithKey(jsc, "rent_lookup_neighborhood", "ne")
                 .mapToPair(extract_id);
@@ -102,15 +104,40 @@ public class Formatted {
         System.out.println("income_opendata_neighborhood: after neighborhood join: "
                 + income_opendata_neighborhood_joined.count());
 
-        JavaPairRDD<String, Integer> incidents = readCollectionWithKey(jsc, "incidents", "Nom barri")
-                .filter(tuple -> {
-                            final Row row = tuple._2();
-                            final Integer fieldIndex = row.fieldIndex("Codi Incident");
-                            return fieldIndex != -1 && !row.isNullAt(fieldIndex)
-                                    && row.getString(fieldIndex).equals("610");
-                        })
-                .mapValues(row -> row.isNullAt(9) ? 0 : row.getInt(9)) // Only interested in number of incidents
-                .reduceByKey((a, b) -> a + b); // Sum incidents
+        // The incidents dataset has two different formats, one with underscores
+        // and one without. Thus we need to handle both:
+        JavaPairRDD<String, Integer> incidents = readCollection(jsc, "incidents")
+                // First we remove all the rows that are not our target incident type:
+                .filter(row -> Stream.of(new String[] {"Codi_Incident", "Codi Incident"}).anyMatch(field -> {
+                                final Integer fieldIndex = row.fieldIndex(field);
+                                return fieldIndex != -1 && !row.isNullAt(fieldIndex) && row.getString(fieldIndex).equals("610");
+                            })
+                        )
+                // Now we set Nom barri as the key:
+                .mapToPair(row -> {
+                    for (final String field : (new String[] {"Nom_barri", "Nom barri"})) {
+                        final Integer fieldIndex = row.fieldIndex(field);
+                        if (fieldIndex != -1 && !row.isNullAt(fieldIndex))
+                            return new Tuple2<>(row.getString(fieldIndex), row);
+                    }
+                    return null;
+                })
+                // Extract the incident count from the row:
+                .mapValues(row -> {
+                    for (final String field : (new String[] {"Numero_incidents_GUB", "Numero d'incidents GUB"})) {
+                        final Integer fieldIndex = row.fieldIndex(field);
+                        if (fieldIndex != -1 && !row.isNullAt(fieldIndex))
+                            return row.getInt(fieldIndex);
+                    }
+                    return 0;
+                })
+                .reduceByKey((a, b) -> a + b); // Reduce by adding all incidents
+
+        // Simple check to see the number of incidents has been reduced properly
+        Integer total_incidents = incidents.values().reduce((a, b) -> a + b);
+        System.out.println("Total incidients: " + total_incidents);
+        if (total_incidents == 0)
+            throw new RuntimeException("Total incidents is zero");
 
         JavaPairRDD<String, Integer> incidents_joined = incidents
                 .join(income_lookup_neighborhood)
