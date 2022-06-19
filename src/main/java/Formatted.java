@@ -170,7 +170,7 @@ public class Formatted {
         // Add the neighborhood_id to rentInformation and remove it from key
         JavaRDD<RentInformation> values = final_join.map(tuple -> {
             RentInformation r = tuple._2();
-            r.setNeighborhood(tuple._1());
+            r.setNeighborhood_id(tuple._1());
             return r;
         });
 
