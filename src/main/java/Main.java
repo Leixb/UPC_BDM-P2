@@ -1,4 +1,5 @@
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -36,7 +37,7 @@ public class Main {
 
         System.out.println("Unknown action: " + args[0]);
         System.out.println("Available actions: "
-                + Stream.of(actions).map(a -> a.name).collect(java.util.stream.Collectors.joining(", ")));
+                + Stream.of(actions).map(a -> a.name).collect(Collectors.joining(", ")));
         System.exit(1);
     }
 }
