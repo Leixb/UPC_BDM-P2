@@ -25,6 +25,8 @@
       apacheKafka
       mongodb
       mongodb-tools
+      jq
+      gnused
       dvc-with-remotes
       pkgs.python3.pkgs.pydrive2
       graphviz
