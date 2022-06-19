@@ -51,3 +51,5 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 .settings
+/formatted_zone
+/exploitation_zone

@@ -10,3 +10,5 @@ stages:
     cmd: nix run .#default -- exploitation
     deps:
     - formatted_zone
+    outs:
+    - exploitation_zone
