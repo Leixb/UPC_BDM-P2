@@ -1,0 +1,172 @@
+digraph G {
+    newrank=true;
+    ordering="in";
+
+    node [shape=box];
+
+    subgraph cluster_sources {
+        label="Sources";
+        rank=same;
+
+        subgraph cluster_mongo {
+            style=solid;
+            color=blue;
+            label="MongoDB";
+
+            income_src [label="Income"];
+            incidents_src [label="Incidents"];
+
+            inc_lu [label="Income lookup"];
+            rent_lu [label="Rent lookup"];
+        }
+
+        subgraph cluster_parquet {
+            style=solid;
+            color=red;
+            label="Parquet";
+
+            ide_src [label="Idealista"];
+        }
+
+    }
+
+    subgraph cluster_ingestion {
+        style=filled;
+        color=lightgrey;
+        labelloc="b";
+        labeljust="l";
+        label="Formatted.java";
+
+        node [style=filled,color=white];
+
+        id_nodup [label="remove  duplicates",shape=ellipse];
+
+        {rank=same;
+            inc_j [label="Income + neigh ID"];
+            ind_j [label="Incidents + neigh ID"];
+            id_j [label="Idealista + neigh ID"];
+        }
+        i_i_j [label="Incidents + income + neigh ID"];
+        i_i_i_j [label="Incidents + income + idealista + neigh ID"];
+        income_src -> inc_j;
+        inc_lu -> inc_j;
+
+        ide_src -> id_nodup;
+        rent_lu -> id_j;
+        id_nodup -> id_j;
+
+        incidents_src -> ind_j;
+        inc_lu -> ind_j;
+
+        ind_j -> i_i_j;
+        inc_j -> i_i_j;
+
+        i_i_j -> i_i_i_j;
+        id_j -> i_i_i_j;
+    }
+
+
+    formatted [label="Formatted Zone (parquet)"];
+
+    i_i_i_j -> formatted;
+
+    subgraph cluster_exploitation {
+        style=filled;
+        color=lightgrey;
+        /* labelloc="b"; */
+        labeljust="l";
+        label="Explotation.java";
+
+        node [style=filled,color=white];
+
+        kpi1 [label="KPI 5"];
+        kpi2 [label="KPI 1"];
+        kpi3 [label="KPI 2"];
+        kpi4 [label="KPI 3"];
+        kpi5 [label="KPI 4"];
+    }
+
+    formatted -> kpi1;
+    formatted -> kpi2;
+    formatted -> kpi3;
+    formatted -> kpi4;
+    formatted -> kpi5;
+
+    exploitation [label="Exploitation Zone (csv)"];
+
+    kpi1 -> exploitation;
+    kpi2 -> exploitation;
+    kpi3 -> exploitation;
+    kpi4 -> exploitation;
+    kpi5 -> exploitation;
+
+    tableau [label="Tableau Dashboard", color=lightblue, style=filled];
+
+    {
+        rank=same;
+        exploitation -> tableau;
+    }
+
+    subgraph cluster_model {
+        style=filled;
+        color=lightgrey;
+        /* labelloc="b"; */
+        labeljust="l";
+        label="Model.java";
+
+        node [style=filled,color=white];
+
+        {rank=same;
+            train [label="Train"];
+            test [label="Test"];
+        }
+
+
+        train -> model [label="Build"];
+
+        i [shape=point color=black];
+        test -> i[dir=none];
+        model -> i[dir=none];
+
+        validation[label="Validation Metrics"];
+
+        i -> validation[label=" Validate"];
+    }
+
+    stderr [label="Logging",style=filled,color=lightpink];
+    validation -> stderr;
+
+    formatted -> train[label="60%"];
+    formatted -> test[label="40%"];
+
+    model_file [label="Model (parquet)"];
+
+    model -> model_file;
+
+    subgraph cluster_streaming {
+        style=filled;
+        color=lightgrey;
+        label = "Streaming.java";
+
+        node [style=filled,color=white];
+
+        stream [label="Kafka Stream"];
+
+        j [shape=point color=black];
+        stream -> j[dir=none];
+
+        j -> prediction;
+    }
+
+    model_file -> j;
+
+    prediction -> dashboard;
+    prediction -> stderr;
+    dashboard [label="Grafana Dashboard", color=orange, style=filled];
+
+
+    {rank=same;
+    stderr;
+    dashboard;
+    }
+}

@@ -27,6 +27,7 @@
       mongodb-tools
       dvc-with-remotes
       pkgs.python3.pkgs.pydrive2
+      graphviz
     ];
 
   in rec {
