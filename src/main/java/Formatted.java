@@ -167,8 +167,12 @@ public class Formatted {
         // Print the fist 10 rows
         final_join.take(10).stream().forEach(System.out::println);
 
-        // We do not need the neighborhood id anymore
-        JavaRDD<RentInformation> values = final_join.values();
+        // Add the neighborhood_id to rentInformation and remove it from key
+        JavaRDD<RentInformation> values = final_join.map(tuple -> {
+            RentInformation r = tuple._2();
+            r.setNeighborhood(tuple._1());
+            return r;
+        });
 
         // Convert to a DataFrame using the Class Schema
         Dataset<Row> d = spark.createDataset(JavaRDD.toRDD(values), Encoders.bean(RentInformation.class)).toDF();

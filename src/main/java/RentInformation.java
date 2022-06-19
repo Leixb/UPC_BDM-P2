@@ -50,9 +50,19 @@ public class RentInformation implements Serializable {
     private List<IncomeInfo> incomeInfo;
     // From opendataBCN incident information
     private long incidents;
+    // From lookup table
+    private String neighborhood_id;
 
     public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+
+	public String getNeighborhood_id() {
+		return neighborhood_id;
+	}
+
+	public void setNeighborhood_id(String neighborhood_id) {
+		this.neighborhood_id = neighborhood_id;
 	}
 
 	public String getAddress() {
