@@ -103,12 +103,12 @@ public class Formatted {
                 + income_opendata_neighborhood_joined.count());
 
         JavaPairRDD<String, Integer> incidents = readCollectionWithKey(jsc, "incidents", "Nom barri")
-                .filter(
-                    tuple -> {
-                        Row row = tuple._2();
-                        Integer fieldIndex = row.fieldIndex("Codi Incident");
-                        return fieldIndex != -1 && !row.isNullAt(fieldIndex) && row.getString(fieldIndex).equals("610");
-                    })
+                .filter(tuple -> {
+                            final Row row = tuple._2();
+                            final Integer fieldIndex = row.fieldIndex("Codi Incident");
+                            return fieldIndex != -1 && !row.isNullAt(fieldIndex)
+                                    && row.getString(fieldIndex).equals("610");
+                        })
                 .mapValues(row -> row.isNullAt(9) ? 0 : row.getInt(9)) // Only interested in number of incidents
                 .reduceByKey((a, b) -> a + b); // Sum incidents
 
@@ -119,20 +119,21 @@ public class Formatted {
         System.out.println("incidents: " + incidents.count());
         System.out.println("incidents: after neighborhood join: " + incidents_joined.count());
 
-        JavaPairRDD<String, Tuple2<List<IncomeInfo>, Integer>> join = income_opendata_neighborhood_joined.join(incidents_joined);
+        JavaPairRDD<String, Tuple2<List<IncomeInfo>, Integer>> join = income_opendata_neighborhood_joined
+                .join(incidents_joined);
 
         System.out.println("join: " + join.count());
 
         JavaPairRDD<String, RentInformation> final_join = idealista_joined
-            .join(join)
-            .mapValues(tuple -> {
-                RentInformation rentInformation = tuple._1();
-                List<IncomeInfo> incomeInfo = tuple._2()._1();
-                Integer inc = tuple._2()._2();
-                rentInformation.setIncidents(inc);
-                rentInformation.setIncomeInfo(incomeInfo);
-                return rentInformation;
-            });
+                .join(join)
+                .mapValues(tuple -> {
+                    final RentInformation rentInformation = tuple._1();
+                    final List<IncomeInfo> incomeInfo = tuple._2()._1();
+                    final Integer inc = tuple._2()._2();
+                    rentInformation.setIncidents(inc);
+                    rentInformation.setIncomeInfo(incomeInfo);
+                    return rentInformation;
+                });
 
         System.out.println("last: " + final_join.count());
 
