@@ -12,3 +12,9 @@ stages:
     - formatted_zone
     outs:
     - exploitation_zone
+  model:
+    cmd: nix run .#default -- model
+    deps:
+    - formatted_zone
+    outs:
+    - model

@@ -4,8 +4,8 @@ stages:
     cmd: nix run .#default -- formatted
     deps:
     - path: data
-      md5: 44567f76dc62cdbd9eb7c17e515e3484.dir
-      size: 373129226
+      md5: ce0d61c6d5e5e863b3021c4327c5cac2.dir
+      size: 373123692
       nfiles: 32
     - path: idealista
       md5: fb83cba9878e60b6a80cf4b0f9d51a57.dir
@@ -13,18 +13,30 @@ stages:
       nfiles: 516
     outs:
     - path: formatted_zone
-      md5: ee69c6e8172192a7b8e650984efb4062.dir
+      md5: 8ed2c949a69737d05f90a4ab59d9df13.dir
       size: 421624
       nfiles: 10
   exploitation:
     cmd: nix run .#default -- exploitation
     deps:
     - path: formatted_zone
-      md5: ee69c6e8172192a7b8e650984efb4062.dir
+      md5: 8ed2c949a69737d05f90a4ab59d9df13.dir
       size: 421624
       nfiles: 10
     outs:
     - path: exploitation_zone
-      md5: 0962365428a5ea323054a6dda0591efe.dir
-      size: 2650
-      nfiles: 16
+      md5: 1ef03a1c92732aee2627bc6034d9cd56.dir
+      size: 2810
+      nfiles: 20
+  model:
+    cmd: nix run .#default -- model
+    deps:
+    - path: formatted_zone
+      md5: 8ed2c949a69737d05f90a4ab59d9df13.dir
+      size: 421624
+      nfiles: 10
+    outs:
+    - path: model
+      md5: 558e4b7a5ba96d8fc6a371e9f1029f0b.dir
+      size: 2377
+      nfiles: 8
