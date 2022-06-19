@@ -40,7 +40,7 @@ public class RentInformation implements Serializable {
     private Double  size;
     private String  status;
 
-	private String  suggestedTexts_title;
+    private String  suggestedTexts_title;
     private String  suggestedTexts_subtitle;
     private String  thumbnail;
     private Boolean topNewDevelopment;
@@ -54,328 +54,328 @@ public class RentInformation implements Serializable {
     private String neighborhood_id;
 
     public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-	public String getNeighborhood_id() {
-		return neighborhood_id;
-	}
-
-	public void setNeighborhood_id(String neighborhood_id) {
-		this.neighborhood_id = neighborhood_id;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public Long getBathrooms() {
-		return bathrooms;
-	}
-
-	public void setBathrooms(Long bathrooms) {
-		this.bathrooms = bathrooms;
-	}
-
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	public String getDetailedType_subTypology() {
-		return detailedType_subTypology;
-	}
-
-	public void setDetailedType_subTypology(String detailedType_subTypology) {
-		this.detailedType_subTypology = detailedType_subTypology;
-	}
-
-	public String getDetailedType_typology() {
-		return detailedType_typology;
-	}
-
-	public void setDetailedType_typology(String detailedType_typology) {
-		this.detailedType_typology = detailedType_typology;
-	}
-
-	public String getDistance() {
-		return distance;
-	}
-
-	public void setDistance(String distance) {
-		this.distance = distance;
-	}
-
-	public String getDistrict() {
-		return district;
-	}
-
-	public void setDistrict(String district) {
-		this.district = district;
-	}
-
-	public Boolean getExterior() {
-		return exterior;
-	}
-
-	public void setExterior(Boolean exterior) {
-		this.exterior = exterior;
-	}
-
-	public String getExternalReference() {
-		return externalReference;
-	}
-
-	public void setExternalReference(String externalReference) {
-		this.externalReference = externalReference;
-	}
-
-	public String getFloor() {
-		return floor;
-	}
-
-	public void setFloor(String floor) {
-		this.floor = floor;
-	}
-
-	public Boolean getHas360() {
-		return has360;
-	}
-
-	public void setHas360(Boolean has360) {
-		this.has360 = has360;
-	}
-
-	public Boolean getHas3DTour() {
-		return has3DTour;
-	}
-
-	public void setHas3DTour(Boolean has3dTour) {
-		has3DTour = has3dTour;
-	}
-
-	public Boolean getHasLift() {
-		return hasLift;
-	}
-
-	public void setHasLift(Boolean hasLift) {
-		this.hasLift = hasLift;
-	}
-
-	public Boolean getHasPlan() {
-		return hasPlan;
-	}
-
-	public void setHasPlan(Boolean hasPlan) {
-		this.hasPlan = hasPlan;
-	}
-
-	public Boolean getHasStaging() {
-		return hasStaging;
-	}
-
-	public void setHasStaging(Boolean hasStaging) {
-		this.hasStaging = hasStaging;
-	}
-
-	public Boolean getHasVideo() {
-		return hasVideo;
-	}
-
-	public void setHasVideo(Boolean hasVideo) {
-		this.hasVideo = hasVideo;
-	}
-
-	public Double getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(Double latitude) {
-		this.latitude = latitude;
-	}
-
-	public Double getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(Double longitude) {
-		this.longitude = longitude;
-	}
-
-	public String getMunicipality() {
-		return municipality;
-	}
-
-	public void setMunicipality(String municipality) {
-		this.municipality = municipality;
-	}
-
-	public String getNeighborhood() {
-		return neighborhood;
-	}
-
-	public void setNeighborhood(String neighborhood) {
-		this.neighborhood = neighborhood;
-	}
-
-	public Boolean getNewDevelopment() {
-		return newDevelopment;
-	}
-
-	public void setNewDevelopment(Boolean newDevelopment) {
-		this.newDevelopment = newDevelopment;
-	}
-
-	public Long getNumPhotos() {
-		return numPhotos;
-	}
-
-	public void setNumPhotos(Long numPhotos) {
-		this.numPhotos = numPhotos;
-	}
-
-	public String getOperation() {
-		return operation;
-	}
-
-	public void setOperation(String operation) {
-		this.operation = operation;
-	}
-
-	public Double getPrice() {
-		return price;
-	}
-
-	public void setPrice(Double price) {
-		this.price = price;
-	}
-
-	public Double getPriceByArea() {
-		return priceByArea;
-	}
-
-	public void setPriceByArea(Double priceByArea) {
-		this.priceByArea = priceByArea;
-	}
-
-	public String getPropertyCode() {
-		return propertyCode;
-	}
-
-	public void setPropertyCode(String propertyCode) {
-		this.propertyCode = propertyCode;
-	}
-
-	public String getPropertyType() {
-		return propertyType;
-	}
-
-	public void setPropertyType(String propertyType) {
-		this.propertyType = propertyType;
-	}
-
-	public String getProvince() {
-		return province;
-	}
-
-	public void setProvince(String province) {
-		this.province = province;
-	}
-
-	public Long getRooms() {
-		return rooms;
-	}
-
-	public void setRooms(Long rooms) {
-		this.rooms = rooms;
-	}
-
-	public Boolean getShowAddress() {
-		return showAddress;
-	}
-
-	public void setShowAddress(Boolean showAddress) {
-		this.showAddress = showAddress;
-	}
-
-	public Double getSize() {
-		return size;
-	}
-
-	public void setSize(Double size) {
-		this.size = size;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public String getSuggestedTexts_title() {
-		return suggestedTexts_title;
-	}
-
-	public void setSuggestedTexts_title(String suggestedTexts_title) {
-		this.suggestedTexts_title = suggestedTexts_title;
-	}
-
-	public String getSuggestedTexts_subtitle() {
-		return suggestedTexts_subtitle;
-	}
-
-	public void setSuggestedTexts_subtitle(String suggestedTexts_subtitle) {
-		this.suggestedTexts_subtitle = suggestedTexts_subtitle;
-	}
-
-	public String getThumbnail() {
-		return thumbnail;
-	}
-
-	public void setThumbnail(String thumbnail) {
-		this.thumbnail = thumbnail;
-	}
-
-	public Boolean getTopNewDevelopment() {
-		return topNewDevelopment;
-	}
-
-	public void setTopNewDevelopment(Boolean topNewDevelopment) {
-		this.topNewDevelopment = topNewDevelopment;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public List<IncomeInfo> getIncomeInfo() {
-		return incomeInfo;
-	}
-
-	public void setIncomeInfo(List<IncomeInfo> incomeInfo) {
-		this.incomeInfo = incomeInfo;
-	}
-
-	public long getIncidents() {
-		return incidents;
-	}
-
-	public void setIncidents(long incidents) {
-		this.incidents = incidents;
-	}
+        return serialVersionUID;
+    }
+
+    public String getNeighborhood_id() {
+        return neighborhood_id;
+    }
+
+    public void setNeighborhood_id(String neighborhood_id) {
+        this.neighborhood_id = neighborhood_id;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Long getBathrooms() {
+        return bathrooms;
+    }
+
+    public void setBathrooms(Long bathrooms) {
+        this.bathrooms = bathrooms;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getDetailedType_subTypology() {
+        return detailedType_subTypology;
+    }
+
+    public void setDetailedType_subTypology(String detailedType_subTypology) {
+        this.detailedType_subTypology = detailedType_subTypology;
+    }
+
+    public String getDetailedType_typology() {
+        return detailedType_typology;
+    }
+
+    public void setDetailedType_typology(String detailedType_typology) {
+        this.detailedType_typology = detailedType_typology;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public Boolean getExterior() {
+        return exterior;
+    }
+
+    public void setExterior(Boolean exterior) {
+        this.exterior = exterior;
+    }
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+
+    public void setExternalReference(String externalReference) {
+        this.externalReference = externalReference;
+    }
+
+    public String getFloor() {
+        return floor;
+    }
+
+    public void setFloor(String floor) {
+        this.floor = floor;
+    }
+
+    public Boolean getHas360() {
+        return has360;
+    }
+
+    public void setHas360(Boolean has360) {
+        this.has360 = has360;
+    }
+
+    public Boolean getHas3DTour() {
+        return has3DTour;
+    }
+
+    public void setHas3DTour(Boolean has3dTour) {
+        has3DTour = has3dTour;
+    }
+
+    public Boolean getHasLift() {
+        return hasLift;
+    }
+
+    public void setHasLift(Boolean hasLift) {
+        this.hasLift = hasLift;
+    }
+
+    public Boolean getHasPlan() {
+        return hasPlan;
+    }
+
+    public void setHasPlan(Boolean hasPlan) {
+        this.hasPlan = hasPlan;
+    }
+
+    public Boolean getHasStaging() {
+        return hasStaging;
+    }
+
+    public void setHasStaging(Boolean hasStaging) {
+        this.hasStaging = hasStaging;
+    }
+
+    public Boolean getHasVideo() {
+        return hasVideo;
+    }
+
+    public void setHasVideo(Boolean hasVideo) {
+        this.hasVideo = hasVideo;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getMunicipality() {
+        return municipality;
+    }
+
+    public void setMunicipality(String municipality) {
+        this.municipality = municipality;
+    }
+
+    public String getNeighborhood() {
+        return neighborhood;
+    }
+
+    public void setNeighborhood(String neighborhood) {
+        this.neighborhood = neighborhood;
+    }
+
+    public Boolean getNewDevelopment() {
+        return newDevelopment;
+    }
+
+    public void setNewDevelopment(Boolean newDevelopment) {
+        this.newDevelopment = newDevelopment;
+    }
+
+    public Long getNumPhotos() {
+        return numPhotos;
+    }
+
+    public void setNumPhotos(Long numPhotos) {
+        this.numPhotos = numPhotos;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public Double getPriceByArea() {
+        return priceByArea;
+    }
+
+    public void setPriceByArea(Double priceByArea) {
+        this.priceByArea = priceByArea;
+    }
+
+    public String getPropertyCode() {
+        return propertyCode;
+    }
+
+    public void setPropertyCode(String propertyCode) {
+        this.propertyCode = propertyCode;
+    }
+
+    public String getPropertyType() {
+        return propertyType;
+    }
+
+    public void setPropertyType(String propertyType) {
+        this.propertyType = propertyType;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public Long getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(Long rooms) {
+        this.rooms = rooms;
+    }
+
+    public Boolean getShowAddress() {
+        return showAddress;
+    }
+
+    public void setShowAddress(Boolean showAddress) {
+        this.showAddress = showAddress;
+    }
+
+    public Double getSize() {
+        return size;
+    }
+
+    public void setSize(Double size) {
+        this.size = size;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getSuggestedTexts_title() {
+        return suggestedTexts_title;
+    }
+
+    public void setSuggestedTexts_title(String suggestedTexts_title) {
+        this.suggestedTexts_title = suggestedTexts_title;
+    }
+
+    public String getSuggestedTexts_subtitle() {
+        return suggestedTexts_subtitle;
+    }
+
+    public void setSuggestedTexts_subtitle(String suggestedTexts_subtitle) {
+        this.suggestedTexts_subtitle = suggestedTexts_subtitle;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
+    public Boolean getTopNewDevelopment() {
+        return topNewDevelopment;
+    }
+
+    public void setTopNewDevelopment(Boolean topNewDevelopment) {
+        this.topNewDevelopment = topNewDevelopment;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public List<IncomeInfo> getIncomeInfo() {
+        return incomeInfo;
+    }
+
+    public void setIncomeInfo(List<IncomeInfo> incomeInfo) {
+        this.incomeInfo = incomeInfo;
+    }
+
+    public long getIncidents() {
+        return incidents;
+    }
+
+    public void setIncidents(long incidents) {
+        this.incidents = incidents;
+    }
 
     // Helper functions to get the values form the Rows
 
