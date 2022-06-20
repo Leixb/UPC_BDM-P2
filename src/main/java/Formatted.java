@@ -22,6 +22,7 @@ import data.RentInformation;
 import data.IncomeInfo;
 
 public class Formatted {
+    // Some helper functions to avoid code duplication
     private static JavaRDD<Row> readCollection(JavaSparkContext jsc, String collection) {
         Map<String, String> readOverrides = new HashMap<String, String>();
         readOverrides.put("collection", collection);
@@ -62,6 +63,12 @@ public class Formatted {
         // - remove duplicates (same propertyCode) (favouring the most recent one)
         // - join it with the neighborhood lookup table
         // - set the neighborhood_id as key
+
+
+        // Note: Since we output debugging information throughout the process,
+        // all the RDDs are cached to avoid re-computation. Most of them could
+        // be removed if we also remove all the debug statements.
+
         JavaRDD<Row> idealista = spark.read().parquet("./idealista/*").toJavaRDD();
         JavaPairRDD<String, RentInformation> idealista_unique = idealista
                 .mapToPair(setKey("propertyCode"))
@@ -97,10 +104,9 @@ public class Formatted {
                 .mapValues(tuple -> tuple._1().divide(tuple._2()))
                 .cache();
 
-        JavaPairRDD<String, String> income_lookup_neighborhood = readCollectionWithKey(jsc,
-                "income_lookup_neighborhood", "neighborhood")
+        JavaPairRDD<String, String> income_lookup_neighborhood = readCollectionWithKey(jsc, "income_lookup_neighborhood", "neighborhood")
                 .mapToPair(extract_id)
-                .cache();
+                .cache(); // This is the only .cache() needed even if we remove debug statements
 
         JavaPairRDD<String, IncomeInfo> income_opendata_neighborhood_joined = income_opendata_neighborhood
                 .join(income_lookup_neighborhood)
@@ -108,8 +114,7 @@ public class Formatted {
                 .cache();
 
         System.out.println("income_opendata_neighborhood: " + income_opendata_neighborhood.count());
-        System.out.println("income_opendata_neighborhood: after neighborhood join: "
-                + income_opendata_neighborhood_joined.count());
+        System.out.println("income_opendata_neighborhood: after neighborhood join: " + income_opendata_neighborhood_joined.count());
 
         // The incidents dataset has two different formats, one with underscores
         // and one without. Thus we need to handle both:
@@ -175,8 +180,8 @@ public class Formatted {
                 .mapValues(tuple -> {
                     final RentInformation rentInformation = tuple._1();
                     final IncomeInfo incomeInfo = tuple._2()._1();
-                    final Double inc = tuple._2()._2();
-                    rentInformation.setIncidents(inc);
+                    final Double avg_incidents = tuple._2()._2();
+                    rentInformation.setIncidents(avg_incidents);
                     rentInformation.setIncomeInfo(incomeInfo);
                     return rentInformation;
                 })
