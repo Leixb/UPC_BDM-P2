@@ -20,6 +20,7 @@ import scala.Tuple2;
 // Custom serializable Classes to parse the input data and encode into the output
 import data.RentInformation;
 import data.IncomeInfo;
+import data.Incident;
 
 public class Formatted {
     // Some helper functions to avoid code duplication
@@ -118,39 +119,16 @@ public class Formatted {
 
         // The incidents dataset has two different formats, one with underscores
         // and one without. Thus we need to handle both:
+
         JavaPairRDD<String, Double> incidents = readCollection(jsc, "incidents")
-                // First we remove all the rows that are not our target incident type:
-                .filter(row -> Stream.of(new String[] { "Codi_Incident", "Codi Incident" }).anyMatch(field -> {
-                    final Integer fieldIndex = row.fieldIndex(field);
-                    return fieldIndex != -1 && !row.isNullAt(fieldIndex) && row.getString(fieldIndex).equals("610");
-                }))
+                // First we remove all the rows that are not our target incident type (610):
+                .filter(row -> Incident.codeEquals(row, "610"))
+                .map(Incident::new)
                 // Now we set Nom barri and year as the key
-                .mapToPair(row -> {
-                    final String[] field_barri = { "Nom_barri", "Nom barri" };
-                    final String[] field_year = { "NK_Any", "NK Any" };
-                    for (int i = 0; i < field_barri.length; i++) {
-                        final String field = field_barri[i];
-                        final Integer fieldIndex = row.fieldIndex(field);
-                        if (fieldIndex != -1 && !row.isNullAt(fieldIndex))
-                            return new Tuple2<>(
-                                    new Tuple2<>(row.getString(fieldIndex), row.getInt(row.fieldIndex(field_year[i]))),
-                                    row
-                            );
-                    }
-                    return null;
-                })
-                // Extract the incident count from the row:
-                .mapValues(row -> {
-                    for (final String field : (new String[] { "Numero_incidents_GUB", "Numero d'incidents GUB" })) {
-                        final Integer fieldIndex = row.fieldIndex(field);
-                        if (fieldIndex != -1 && !row.isNullAt(fieldIndex))
-                            return row.getInt(fieldIndex);
-                    }
-                    return 0;
-                })
+                .mapToPair(incident -> new Tuple2<>(new Tuple2<String, Integer>(incident.getNeighborhood() , incident.getYear()), incident.getCount()))
                 .reduceByKey((a, b) -> a + b) // Reduce by adding all incidents (by neighborhood and year)
                 // Change key to neighborhood and add count so that we can compute average:
-                .mapToPair(pair -> new Tuple2<>(pair._1()._1(), new Tuple2<>(pair._2(), 1)))
+                .mapToPair(pair -> new Tuple2<>(pair._1()._1(), new Tuple2<Integer, Integer>(pair._2(), 1)))
                 .reduceByKey((a, b) -> new Tuple2<>(a._1() + b._1(), a._2() + b._2()))
                 .mapValues(pair -> ((double) pair._1()) / pair._2()) // Calculate the average
                 .cache();
