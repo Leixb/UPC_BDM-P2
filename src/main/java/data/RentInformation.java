@@ -1,7 +1,5 @@
 package data;
 
-import java.util.List;
-
 import org.apache.spark.sql.Row;
 
 import scala.Serializable;
@@ -49,9 +47,12 @@ public class RentInformation implements Serializable {
     private String  url;
 
     // From opendataBCN rent information
-    private List<IncomeInfo> incomeInfo;
+    private Double population;
+    private Double rfd;
+
     // From opendataBCN incident information
-    private long incidents;
+    private Double incidents;
+
     // From lookup table
     private String neighborhood_id;
 
@@ -59,7 +60,23 @@ public class RentInformation implements Serializable {
         return serialVersionUID;
     }
 
-    public String getNeighborhood_id() {
+    public Double getPopulation() {
+		return population;
+	}
+
+	public void setPopulation(Double population) {
+		this.population = population;
+	}
+
+	public Double getRfd() {
+		return rfd;
+	}
+
+	public void setRfd(Double rfd) {
+		this.rfd = rfd;
+	}
+
+	public String getNeighborhood_id() {
         return neighborhood_id;
     }
 
@@ -363,19 +380,16 @@ public class RentInformation implements Serializable {
         this.url = url;
     }
 
-    public List<IncomeInfo> getIncomeInfo() {
-        return incomeInfo;
+    public void setIncomeInfo(IncomeInfo incomeInfo) {
+        this.rfd = incomeInfo.getRfd();
+        this.population = incomeInfo.getPopulation();
     }
 
-    public void setIncomeInfo(List<IncomeInfo> incomeInfo) {
-        this.incomeInfo = incomeInfo;
-    }
-
-    public long getIncidents() {
+    public Double getIncidents() {
         return incidents;
     }
 
-    public void setIncidents(long incidents) {
+    public void setIncidents(Double incidents) {
         this.incidents = incidents;
     }
 
