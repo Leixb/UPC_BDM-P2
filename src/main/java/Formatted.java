@@ -19,6 +19,10 @@ import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
 
+// Custom serializable Classes to parse the input data and encode into the output
+import data.RentInformation;
+import data.IncomeInfo;
+
 public class Formatted {
     private static JavaRDD<Row> readCollection(JavaSparkContext jsc, String collection) {
         Map<String, String> readOverrides = new HashMap<String, String>();

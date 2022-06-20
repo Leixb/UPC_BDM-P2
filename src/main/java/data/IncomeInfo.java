@@ -1,3 +1,5 @@
+package data;
+
 import org.apache.spark.sql.Row;
 
 import scala.Serializable;

@@ -1,3 +1,5 @@
+package data;
+
 import java.util.List;
 
 import org.apache.spark.sql.Row;
