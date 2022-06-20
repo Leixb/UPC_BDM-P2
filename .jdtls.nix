@@ -6,11 +6,11 @@
 
 let jdtls = stdenv.mkDerivation rec {
   pname = "jdtls";
-  version = "1.9.0";
+  version = "1.12.0";
 
   src = fetchurl {
-    url = "https://download.eclipse.org/jdtls/milestones/${version}/jdt-language-server-${version}-202203031534.tar.gz";
-    sha256 = "b8af1925cb3b817fd1061e00a45ffbc6aca76819d8b2f5939626009ebf432fc7";
+    url = "https://download.eclipse.org/jdtls/milestones/${version}/jdt-language-server-${version}-202206011637.tar.gz";
+    sha256 = "38f20fec27a8fcdb1b3c49a117629dd0800b161171afd4b894bdc026f2fca2f3";
   };
     sourceRoot = ".";
 
