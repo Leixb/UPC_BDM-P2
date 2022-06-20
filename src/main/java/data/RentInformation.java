@@ -395,75 +395,51 @@ public class RentInformation implements Serializable {
 
     // Helper functions to get the values form the Rows
 
-    private String getString(Row row, String key) {
+    private <T> T getValueByKey(Row row, String key) {
         Integer idx = row.fieldIndex(key);
         if (idx < 0 || row.isNullAt(idx)) return null;
-        return row.getString(idx);
-    }
-
-    private Long getLong(Row row, String key) {
-        Integer idx = row.fieldIndex(key);
-        if (idx < 0 || row.isNullAt(idx)) return null;
-        return row.getLong(idx);
-    }
-
-    private Double getDouble(Row row, String key) {
-        Integer idx = row.fieldIndex(key);
-        if (idx < 0 || row.isNullAt(idx)) return null;
-        return row.getDouble(idx);
-    }
-
-    private Boolean getBoolean(Row row, String key) {
-        Integer idx = row.fieldIndex(key);
-        if (idx < 0 || row.isNullAt(idx)) return null;
-        return row.getBoolean(idx);
-    }
-
-    private Row getStruct(Row row, String key) {
-        Integer idx = row.fieldIndex(key);
-        if (idx < 0 || row.isNullAt(idx)) return null;
-        return row.getStruct(idx);
+        return row.getAs(idx);
     }
 
     public RentInformation() { }
 
     public RentInformation(Row row) {
-        this.address                  = getString(row, "address");
-        this.bathrooms                = getLong(row, "bathrooms");
-        this.country                  = getString(row, "country");
-        this.detailedType_subTypology = getString(getStruct(row, "detailedType"), "subTypology");
-        this.detailedType_typology    = getString(getStruct(row, "detailedType"), "typology");
-        this.distance                 = getString(row, "distance");
-        this.district                 = getString(row, "district");
-        this.exterior                 = getBoolean(row, "exterior");
-        this.externalReference        = getString(row, "externalReference");
-        this.floor                    = getString(row, "floor");
-        this.has360                   = getBoolean(row, "has360");
-        this.has3DTour                = getBoolean(row, "has3DTour");
-        this.hasLift                  = getBoolean(row, "hasLift");
-        this.hasPlan                  = getBoolean(row, "hasPlan");
-        this.hasStaging               = getBoolean(row, "hasStaging");
-        this.hasVideo                 = getBoolean(row, "hasVideo");
-        this.latitude                 = getDouble(row, "latitude");
-        this.longitude                = getDouble(row, "longitude");
-        this.municipality             = getString(row, "municipality");
-        this.neighborhood             = getString(row, "neighborhood");
-        this.newDevelopment           = getBoolean(row, "newDevelopment");
-        this.numPhotos                = getLong(row, "numPhotos");
-        this.operation                = getString(row, "operation");
-        this.price                    = getDouble(row, "price");
-        this.priceByArea              = getDouble(row, "priceByArea");
-        this.propertyCode             = getString(row, "propertyCode");
-        this.propertyType             = getString(row, "propertyType");
-        this.province                 = getString(row, "province");
-        this.rooms                    = getLong(row, "rooms");
-        this.showAddress              = getBoolean(row, "showAddress");
-        this.size                     = getDouble(row, "size");
-        this.status                   = getString(row, "status");
-        this.suggestedTexts_title     = getString(getStruct(row, "suggestedTexts"), "title");
-        this.suggestedTexts_subtitle  = getString(getStruct(row, "suggestedTexts"), "subtitle");
-        this.thumbnail                = getString(row, "thumbnail");
-        this.topNewDevelopment        = getBoolean(row, "topNewDevelopment");
-        this.url                      = getString(row, "url");
+        this.address                  = getValueByKey(row, "address");
+        this.bathrooms                = getValueByKey(row, "bathrooms");
+        this.country                  = getValueByKey(row, "country");
+        this.detailedType_subTypology = getValueByKey(getValueByKey(row, "detailedType"), "subTypology");
+        this.detailedType_typology    = getValueByKey(getValueByKey(row, "detailedType"), "typology");
+        this.distance                 = getValueByKey(row, "distance");
+        this.district                 = getValueByKey(row, "district");
+        this.exterior                 = getValueByKey(row, "exterior");
+        this.externalReference        = getValueByKey(row, "externalReference");
+        this.floor                    = getValueByKey(row, "floor");
+        this.has360                   = getValueByKey(row, "has360");
+        this.has3DTour                = getValueByKey(row, "has3DTour");
+        this.hasLift                  = getValueByKey(row, "hasLift");
+        this.hasPlan                  = getValueByKey(row, "hasPlan");
+        this.hasStaging               = getValueByKey(row, "hasStaging");
+        this.hasVideo                 = getValueByKey(row, "hasVideo");
+        this.latitude                 = getValueByKey(row, "latitude");
+        this.longitude                = getValueByKey(row, "longitude");
+        this.municipality             = getValueByKey(row, "municipality");
+        this.neighborhood             = getValueByKey(row, "neighborhood");
+        this.newDevelopment           = getValueByKey(row, "newDevelopment");
+        this.numPhotos                = getValueByKey(row, "numPhotos");
+        this.operation                = getValueByKey(row, "operation");
+        this.price                    = getValueByKey(row, "price");
+        this.priceByArea              = getValueByKey(row, "priceByArea");
+        this.propertyCode             = getValueByKey(row, "propertyCode");
+        this.propertyType             = getValueByKey(row, "propertyType");
+        this.province                 = getValueByKey(row, "province");
+        this.rooms                    = getValueByKey(row, "rooms");
+        this.showAddress              = getValueByKey(row, "showAddress");
+        this.size                     = getValueByKey(row, "size");
+        this.status                   = getValueByKey(row, "status");
+        this.suggestedTexts_title     = getValueByKey(getValueByKey(row, "suggestedTexts"), "title");
+        this.suggestedTexts_subtitle  = getValueByKey(getValueByKey(row, "suggestedTexts"), "subtitle");
+        this.thumbnail                = getValueByKey(row, "thumbnail");
+        this.topNewDevelopment        = getValueByKey(row, "topNewDevelopment");
+        this.url                      = getValueByKey(row, "url");
     }
 }
