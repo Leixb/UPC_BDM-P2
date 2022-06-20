@@ -64,20 +64,24 @@ public class Formatted {
         JavaPairRDD<String, RentInformation> idealista_unique = idealista
                 .mapToPair(setKey("propertyCode"))
                 .reduceByKey((row1, row2) -> row2)
-                .mapValues(RentInformation::new);
+                .mapValues(RentInformation::new)
+                .cache();
 
         JavaPairRDD<String, String> rent_lookup_neighborhood = readCollectionWithKey(jsc, "rent_lookup_neighborhood", "ne")
-                .mapToPair(extract_id);
+                .mapToPair(extract_id)
+                .cache();
 
         JavaPairRDD<String, RentInformation> idealista_rekeyed = idealista_unique
-                .mapToPair(row -> new Tuple2<>(row._2().getNeighborhood(), row._2()));
+                .mapToPair(row -> new Tuple2<>(row._2().getNeighborhood(), row._2()))
+                .cache();
 
         idealista_rekeyed.take(10).forEach(System.out::println);
         rent_lookup_neighborhood.take(10).forEach(System.out::println);
 
         JavaPairRDD<String, RentInformation> idealista_joined = idealista_rekeyed
                 .join(rent_lookup_neighborhood)
-                .mapToPair(pair -> new Tuple2<>(pair._2()._2(), pair._2()._1()));
+                .mapToPair(pair -> new Tuple2<>(pair._2()._2(), pair._2()._1()))
+                .cache();
 
         System.out.println("idealista: original: " + idealista.count());
         System.out.println("idealista: after duplicate removal: " + idealista_unique.count());
@@ -90,15 +94,18 @@ public class Formatted {
                     row.getList(row.fieldIndex("info"))
                             .forEach(item -> list.add(new IncomeInfo((Row) item)));
                     return list;
-                });
+                })
+                .cache();
 
         JavaPairRDD<String, String> income_lookup_neighborhood = readCollectionWithKey(jsc,
                 "income_lookup_neighborhood", "neighborhood")
-                .mapToPair(extract_id);
+                .mapToPair(extract_id)
+                .cache();
 
         JavaPairRDD<String, List<IncomeInfo>> income_opendata_neighborhood_joined = income_opendata_neighborhood
                 .join(income_lookup_neighborhood)
-                .mapToPair(pair -> new Tuple2<>(pair._2()._2(), pair._2()._1()));
+                .mapToPair(pair -> new Tuple2<>(pair._2()._2(), pair._2()._1()))
+                .cache();
 
         System.out.println("income_opendata_neighborhood: " + income_opendata_neighborhood.count());
         System.out.println("income_opendata_neighborhood: after neighborhood join: "
@@ -131,7 +138,8 @@ public class Formatted {
                     }
                     return 0;
                 })
-                .reduceByKey((a, b) -> a + b); // Reduce by adding all incidents
+                .reduceByKey((a, b) -> a + b) // Reduce by adding all incidents
+                .cache();
 
         // Simple check to see the number of incidents has been reduced properly
         Integer total_incidents = incidents.values().reduce((a, b) -> a + b);
@@ -141,13 +149,15 @@ public class Formatted {
 
         JavaPairRDD<String, Integer> incidents_joined = incidents
                 .join(income_lookup_neighborhood)
-                .mapToPair(pair -> new Tuple2<>(pair._2()._2(), pair._2()._1()));
+                .mapToPair(pair -> new Tuple2<>(pair._2()._2(), pair._2()._1()))
+                .cache();
 
         System.out.println("incidents: " + incidents.count());
         System.out.println("incidents: after neighborhood join: " + incidents_joined.count());
 
         JavaPairRDD<String, Tuple2<List<IncomeInfo>, Integer>> join = income_opendata_neighborhood_joined
-                .join(incidents_joined);
+                .join(incidents_joined)
+                .cache();
 
         System.out.println("join: " + join.count());
 
@@ -160,7 +170,8 @@ public class Formatted {
                     rentInformation.setIncidents(inc);
                     rentInformation.setIncomeInfo(incomeInfo);
                     return rentInformation;
-                });
+                })
+                .cache();
 
         System.out.println("last: " + final_join.count());
 
@@ -172,7 +183,7 @@ public class Formatted {
             RentInformation r = tuple._2();
             r.setNeighborhood_id(tuple._1());
             return r;
-        });
+        }).cache();
 
         // Convert to a DataFrame using the Class Schema
         Dataset<Row> d = spark.createDataset(JavaRDD.toRDD(values), Encoders.bean(RentInformation.class)).toDF();
